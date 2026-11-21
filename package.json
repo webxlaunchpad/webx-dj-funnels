@@ -1,0 +1,23 @@
+{
+  "name": "webx-dj-funnels",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/*.test.ts",
+    "deploy:test": "npm run build && wrangler deploy --env test",
+    "deploy:live": "npm run build && wrangler deploy --env live"
+  },
+  "dependencies": { "react": "^19.2.0", "react-dom": "^19.2.0" },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261118.1",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "esbuild": "^0.25.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.6.0",
+    "wrangler": "^4.165.0"
+  }
+}
