@@ -159,7 +159,9 @@ export default {
         }
       }
       if (p === "/" || /^\/(a|r)\/[^/]+\/?$/.test(p) || p === "/privacy" || p === "/terms") {
-        const r = await env.ASSETS.fetch(new Request(new URL("/index.html", url), req));
+        // Ask for "/" (not "/index.html": Cloudflare redirects that to "/", which would loop).
+        const r = await env.ASSETS.fetch(new Request(new URL("/", url), { method: "GET", headers: req.headers }));
+        if (r.status >= 300 && r.status < 400) return withSecurity(new Response("Page unavailable", { status: 502 })); // never pass a redirect on
         const out = withSecurity(r); out.headers.set("cache-control", "no-cache"); return out;
       }
       return withSecurity(new Response("Not found", { status: 404 }));

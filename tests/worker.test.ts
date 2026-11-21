@@ -6,7 +6,10 @@ import worker, { type Env } from "../src/worker";
 function env(over: Partial<Env> = {}, answers: Record<string, [number, unknown]> = {}) {
   const calls: { url: string; init: RequestInit }[] = [];
   const e = {
-    ASSETS: { fetch: async () => new Response("<html>app</html>", { headers: { "content-type": "text/html" } }) },
+    // Behaves like Cloudflare's file server: /index.html redirects to /.
+    ASSETS: { fetch: async (r: Request) => new URL(r.url).pathname === "/index.html"
+      ? new Response(null, { status: 307, headers: { location: "/" } })
+      : new Response("<html>app</html>", { headers: { "content-type": "text/html" } }) },
     CORE: { fetch: async (url: string, init: RequestInit) => { calls.push({ url, init }); const k = Object.keys(answers).find((p) => url.includes(p));
       const [s, b] = k ? answers[k]! : [404, {}]; return new Response(JSON.stringify(b), { status: s }); } },
     CORE_URL: "https://core.test", ENVIRONMENT: "test", SQUARE_LOCATION_ID: "L1", AFFILIATE_FUNNEL: "on", REP_FUNNEL: "off", ...over,
@@ -21,7 +24,7 @@ test("health and pages", async () => {
   assert.equal((await worker.fetch(new Request("https://f.test/health"), e)).status, 200);
   for (const p of ["/", "/a/kayla", "/r/104", "/privacy"]) {
     const r = await worker.fetch(new Request(`https://f.test${p}`), e);
-    assert.equal(r.status, 200, p); assert.match(r.headers.get("content-security-policy") ?? "", /frame-ancestors 'none'/);
+    assert.equal(r.status, 200, p); assert.equal(await r.text(), "<html>app</html>", p); assert.match(r.headers.get("content-security-policy") ?? "", /frame-ancestors 'none'/);
   }
   assert.equal((await worker.fetch(new Request("https://f.test/nope"), e)).status, 404);
 });
