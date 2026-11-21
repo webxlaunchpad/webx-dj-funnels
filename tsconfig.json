@@ -4,5 +4,5 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"], "types": ["@cloudflare/workers-types"], "skipLibCheck": true, "noEmit": true,
     "noUncheckedIndexedAccess": true, "isolatedModules": true, "allowImportingTsExtensions": false
   },
-  "include": ["src", "client", "tests"]
+  "include": ["src", "client"]
 }
