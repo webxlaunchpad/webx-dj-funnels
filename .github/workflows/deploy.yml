@@ -1,0 +1,65 @@
+name: Deploy
+# Test deploys automatically after CI passes on main. Live deploys ONLY when a person starts it:
+# Actions → Deploy → Run workflow → target "live", type DEPLOY LIVE (main only; test deploys first).
+# Repository secrets: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID, and the Square application IDs
+# SQUARE_APPLICATION_ID_TEST (sandbox-sq0idb-…) / SQUARE_APPLICATION_ID_LIVE (sq0idp-…). The IDs
+# are public (they're in every buyer's browser); they live in secrets only so GitHub stays the master copy.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      target: { description: "Where to deploy", type: choice, options: [test, live], default: test }
+      confirm: { description: "For live, type DEPLOY LIVE", required: false, default: "" }
+concurrency: { group: deploy, cancel-in-progress: false }
+permissions: { contents: read }
+jobs:
+  test:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    environment: test
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "${{ github.event.workflow_run.head_sha || github.sha }}" }
+      - name: Check secrets are set
+        env: { T: "${{ secrets.CLOUDFLARE_API_TOKEN }}", A: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}", S: "${{ secrets.SQUARE_APPLICATION_ID_TEST }}" }
+        run: |
+          if [ -z "$T" ] || [ -z "$A" ]; then echo "::error::Add CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID as repository secrets."; exit 1; fi
+          if [ -z "$S" ]; then echo "::warning::SQUARE_APPLICATION_ID_TEST isn't set: the test funnel will deploy but checkout will say payments are unavailable."; fi
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm install --no-audit --no-fund && npm run build
+      - name: Deploy test funnels
+        env: { CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}", CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}", SQ: "${{ secrets.SQUARE_APPLICATION_ID_TEST }}" }
+        run: npx wrangler deploy --env test ${SQ:+--var SQUARE_APPLICATION_ID:$SQ}
+      - name: Health (test)
+        run: |
+          for i in 1 2 3 4 5 6; do
+            if curl -sf https://webx-dj-funnels-test.webxlaunchpad.workers.dev/health | grep -q '"ok":true'; then echo healthy; exit 0; fi; sleep 10; done
+          echo "::error::Test funnels didn't answer /health after deploy"; exit 1
+  live:
+    needs: test
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'live'
+    runs-on: ubuntu-latest
+    environment: live
+    steps:
+      - name: Live needs main and the typed confirmation
+        env: { CONFIRM: "${{ inputs.confirm }}", REF: "${{ github.ref }}", S: "${{ secrets.SQUARE_APPLICATION_ID_LIVE }}" }
+        run: |
+          if [ "$REF" != "refs/heads/main" ]; then echo "::error::Only main can deploy to live (got $REF)"; exit 1; fi
+          if [ "$CONFIRM" != "DEPLOY LIVE" ]; then echo "::error::Type DEPLOY LIVE in the confirm box to deploy live"; exit 1; fi
+          case "$S" in sq0idp-*) ;; *) echo "::error::SQUARE_APPLICATION_ID_LIVE must be the production ID (starts with sq0idp-)"; exit 1;; esac
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm install --no-audit --no-fund && npm run build
+      - name: Deploy live funnels
+        env: { CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}", CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}", SQ: "${{ secrets.SQUARE_APPLICATION_ID_LIVE }}" }
+        run: npx wrangler deploy --env live --var SQUARE_APPLICATION_ID:$SQ
+      - name: Health (live)
+        run: |
+          for i in 1 2 3 4 5 6; do
+            if curl -sf https://webx-dj-funnels.webxlaunchpad.workers.dev/health | grep -q '"ok":true'; then echo healthy; exit 0; fi; sleep 10; done
+          echo "::error::Live funnels didn't answer /health after deploy"; exit 1
