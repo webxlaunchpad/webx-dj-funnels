@@ -1,0 +1,32 @@
+name: Live check (read-only)
+# Looks at the LIVE funnel without buying anything: pages, health, config, links off, domain check.
+on:
+  push:
+    branches: [live-check]
+  workflow_dispatch:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check live funnel (no purchases)
+        run: |
+          F=https://webx-dj-funnels.webxlaunchpad.workers.dev; fail=0
+          t() { if [ "$2" = "$3" ]; then echo "PASS  $1 ($2)"; else echo "FAIL  $1 (got $2, want $3)"; fail=1; fi; }
+          for p in / /privacy /terms; do t "page $p" "$(curl -s -o /dev/null -w '%{http_code}' $F$p)" 200; done
+          t "health" "$(curl -s $F/health | jq -r '.ok and .environment == "live"')" true
+          C=$(curl -s $F/api/config)
+          t "real Square (not sandbox)" "$(echo "$C" | jq -r '.square.applicationId | startswith("sq0idp-")')" true
+          t "real Square card script" "$(echo "$C" | jq -r '.square.sdk')" "https://web.squarecdn.com/v1/square.js"
+          t "live location" "$(echo "$C" | jq -r '.square.locationId')" L7BNAT9F01DB3
+          t "price \$99 setup" "$(echo "$C" | jq -r '.prices.direct.setupCents')" 9900
+          t "price \$49/mo" "$(echo "$C" | jq -r '.prices.direct.monthlyCents')" 4900
+          t "affiliate funnel off" "$(echo "$C" | jq -r '.funnels.affiliate')" false
+          t "rep funnel off" "$(echo "$C" | jq -r '.funnels.rep')" false
+          t "affiliate link refused" "$(curl -s -o /dev/null -w '%{http_code}' $F/api/link/affiliate/kayla)" 404
+          t "rep link refused" "$(curl -s -o /dev/null -w '%{http_code}' $F/api/link/rep/101)" 404
+          t "affiliate checkout refused" "$(curl -s -o /dev/null -w '%{http_code}' -X POST $F/api/checkout -d '{"kind":"affiliate","handle":"kayla","key":"0f8fad5b-d9cb-469f-a165-70867728950e","sourceId":"x","customer":{"email":"a@b.co"}}')" 400
+          D=$(curl -s -X POST $F/api/domain-check -d '{"query":"DJ Nova"}')
+          t "domain check via live Core" "$(echo "$D" | jq -r '.domain')" djnova.com
+          echo "domain check said: $D" | cut -c1-200
+          t "security headers" "$(curl -sI $F/ | grep -ci "frame-ancestors 'none'")" 1
+          exit $fail
