@@ -228,3 +228,14 @@ h3{font-size:18px;font-weight:700}
   .co-form .row{margin-top:clamp(12px,2vh,24px)}
   .secure{margin-top:clamp(8px,1.4vh,14px)}
 }
+/* Short computer screens (small laptops): the design picker still fits */
+@media (min-width:901px) and (max-height:720px){
+  .pick .kick{margin-bottom:6px}
+  .pick .h2{font-size:28px}
+  .pick .field em{display:none}
+  .dcard img{max-height:8.5vh}
+  .dvibe{display:none}
+  .pick-side>.tiny{display:none}
+  .pick .row{margin-top:12px}
+  .pick .btn{height:44px}
+}
