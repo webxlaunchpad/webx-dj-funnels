@@ -89,7 +89,7 @@ export function Checkout(p: { cfg: Config | null; referrer: Referrer; stageName:
       <section className="co-grid">
         <div className="glass co-sum rise">
           <p className="kick">Your order</p>
-          <div className="co-item"><img src={d.phone} alt="" /><div><b>WebX DJ website</b><span>{p.stageName || "Your DJ name"} · {d.name} design</span></div></div>
+          <div className="co-item"><img src={d.phone} alt="" /><div><b>WebX DJ website</b><span>{p.stageName ? `${p.stageName} · ` : ""}{d.name} design</span></div></div>
           <ul className="incl">{INCLUDED.map((x) => <li key={x}><Check />{x}</li>)}</ul>
           <div className="co-lines">
             <div><span>Setup today</span><b>{money(price.setupCents)}</b></div>

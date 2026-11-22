@@ -93,6 +93,7 @@ h3{font-size:18px;font-weight:700}
 .pick-grid{max-width:1280px;width:100%;margin:8px auto 0;display:grid;grid-template-columns:minmax(0,440px) minmax(0,1fr);gap:clamp(20px,3vw,44px);align-items:start}
 .field{display:flex;flex-direction:column;gap:7px;margin:18px 0 0}
 .field>span{font-size:13px;font-weight:600;color:var(--ink-2)}
+.field .opt{font-style:normal;font-weight:500;color:var(--ink-3)}
 .field input{height:52px;padding:0 16px;border-radius:14px;background:rgba(0,0,0,.42);border:1px solid var(--line-hi);outline:none;font-size:16px;transition:border-color .15s,box-shadow .15s}
 .field input:focus{border-color:var(--acc);box-shadow:0 0 0 4px rgba(255,122,26,.18)}
 .field input[readonly]{opacity:.75}

@@ -5,9 +5,7 @@ import { Screen, Top } from "./Shell";
 
 export function PickDesign(p: { stageName: string; onStageName: (s: string) => void; design: DesignId; onDesign: (d: DesignId) => void; onBack: () => void; onNext: () => void }) {
   const [view, setView] = useState<"desktop" | "phone">(typeof window !== "undefined" && window.innerWidth < 760 ? "phone" : "desktop");
-  const [tried, setTried] = useState(false);
   const cur = DESIGNS.find((d) => d.id === p.design)!;
-  const ok = p.stageName.trim().length >= 2;
   return (
     <Screen bg="stage" className="pick">
       <Top at={0} />
@@ -16,9 +14,9 @@ export function PickDesign(p: { stageName: string; onStageName: (s: string) => v
           <p className="kick">Step 1</p>
           <h1 className="h2">Make it yours</h1>
           <label className="field">
-            <span>Your DJ / stage name</span>
-            <input value={p.stageName} onChange={(e) => p.onStageName(e.target.value)} placeholder="DJ Nova" maxLength={60} autoComplete="nickname" aria-invalid={tried && !ok} />
-            {tried && !ok ? <em className="err">Add your DJ name. You can change it later.</em> : <em>Shown on your website. You can change it anytime.</em>}
+            <span>Your DJ / stage name <i className="opt">(optional)</i></span>
+            <input value={p.stageName} onChange={(e) => p.onStageName(e.target.value)} placeholder="DJ Nova" maxLength={60} autoComplete="nickname" />
+            <em>See it on the preview. Skip it if you like; you can add it anytime in DJ Hub.</em>
           </label>
           <p className="label">Pick your design</p>
           <div className="designs" role="radiogroup" aria-label="Design">
@@ -33,7 +31,7 @@ export function PickDesign(p: { stageName: string; onStageName: (s: string) => v
           <p className="tiny">You can switch designs anytime in DJ Hub.</p>
           <div className="row">
             <button className="btn ghost" onClick={p.onBack}><Back /> Back</button>
-            <button className="btn acc" onClick={() => (ok ? p.onNext() : setTried(true))}>Use {cur.name} <Arrow /></button>
+            <button className="btn acc" onClick={p.onNext}>Use {cur.name} <Arrow /></button>
           </div>
         </div>
         <div className="preview rise" style={{ ["--i" as string]: 1 }}>
