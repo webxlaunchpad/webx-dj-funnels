@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Arrow, Back, Megaphone, Music, Qr, Ticket, Trend } from "../icons";
 import type { Referrer } from "../main";
 import { Screen, Top } from "./Shell";
@@ -11,6 +12,10 @@ const PARTS = [
 ];
 
 export function System({ referrer, onBack, onNext }: { referrer: Referrer; onBack: () => void; onNext: () => void }) {
+  // Walks through the five steps on its own; hover or tap a step to look at it (pauses the walk).
+  const [on, setOn] = useState(0);
+  const [held, setHeld] = useState(false);
+  useEffect(() => { if (held) return; const t = setInterval(() => setOn((x) => (x + 1) % PARTS.length), 3400); return () => clearInterval(t); }, [held]);
   return (
     <Screen bg="beams" className="system">
       <Top at={0} referrer={referrer} />
@@ -20,11 +25,13 @@ export function System({ referrer, onBack, onNext }: { referrer: Referrer; onBac
         <p className="lead">Capture, engage, promote, grow and monetize, all run from one place: your DJ Hub.</p>
         <div className="parts">
           {PARTS.map((x, i) => (
-            <article key={x.kick} className="glass part rise" style={{ ["--i" as string]: i + 1 }}>
+            <article key={x.kick} className="glass part rise" data-on={on === i} style={{ ["--i" as string]: i + 1 }}
+              tabIndex={0} onMouseEnter={() => { setOn(i); setHeld(true); }} onMouseLeave={() => setHeld(false)} onFocus={() => { setOn(i); setHeld(true); }} onBlur={() => setHeld(false)} onClick={() => { setOn(i); setHeld(true); }}>
               <span className="ico"><x.icon /></span>
               <p className="kick sm"><b className="pn">0{i + 1}</b>{x.kick}{x.badge ? <em className="badge">{x.badge}</em> : null}</p>
               <h3>{x.title}</h3>
               <p>{x.text}</p>
+              <i className="prog" key={on === i && !held ? `run${on}` : "still"} />
             </article>
           ))}
         </div>

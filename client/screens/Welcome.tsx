@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type PointerEvent } from "react";
 import { DESIGNS } from "../designs";
 import { Arrow } from "../icons";
+import { QR_PATH, QR_SIZE } from "../qr";
 import type { Referrer } from "../main";
 import { Foot, Screen, Top } from "./Shell";
 
@@ -21,26 +22,21 @@ function BrandArt() {
   );
 }
 
-// A QR-style pattern (decorative; not a working code) with a scan sweep and new fans dropping in.
-const QR = Array.from({ length: 13 * 13 }, (_, i) => {
-  const x = i % 13, y = Math.floor(i / 13);
-  const finder = (a: number, b: number) => x >= a && x < a + 4 && y >= b && y < b + 4;
-  if (finder(0, 0) || finder(9, 0) || finder(0, 9)) return false;
-  return ((x * 7 + y * 11 + x * y) % 5) < 2;
-});
+// The real QR (opens dj.webxlaunchpad.com), framed like a phone camera locking on; new fans pop into the list.
+const FANS = ["Ava", "Leo", "Mia", "Kai", "Zoe", "Eli", "Nia", "Max"];
 function QrArt() {
   const [fans, setFans] = useState(126);
-  useEffect(() => { const t = setInterval(() => setFans((f) => f + 1), 1800); return () => clearInterval(t); }, []);
+  const [who, setWho] = useState(0);
+  useEffect(() => { const t = setInterval(() => { setFans((f) => f + 1); setWho((w) => (w + 1) % FANS.length); }, 1900); return () => clearInterval(t); }, []);
   return (
     <div className="art art-qr" aria-hidden="true">
       <div className="qr">
-        <svg viewBox="0 0 13 13">{QR.map((v, i) => (v ? <rect key={i} x={i % 13} y={Math.floor(i / 13)} width="1" height="1" rx=".18" /> : null))}
-          {[[0, 0], [9, 0], [0, 9]].map(([a, b]) => <g key={`${a}${b}`}><rect x={a! + .35} y={b! + .35} width="3.3" height="3.3" rx=".6" className="fo" /><rect x={a! + 1.25} y={b! + 1.25} width="1.5" height="1.5" rx=".3" /></g>)}
-        </svg>
+        <svg viewBox={`-1 -1 ${QR_SIZE + 2} ${QR_SIZE + 2}`} shapeRendering="crispEdges"><path d={QR_PATH} /></svg>
         <i className="sweep" />
+        <b className="lock tl" /><b className="lock tr" /><b className="lock bl" /><b className="lock br" />
       </div>
-      <span className="chip pop" key={fans}>+1 fan</span>
-      <span className="count"><b>{fans}</b> on your list</span>
+      <span className="chip pop" key={`f${fans}`}><i className="av">{FANS[who]![0]}</i>{FANS[who]} joined</span>
+      <span className="count"><b key={`c${fans}`}>{fans}</b> on your list</span>
     </div>
   );
 }
@@ -56,20 +52,24 @@ function GrowArt() {
         <circle cx="200" cy="8" r="3.5" className="dot" />
       </svg>
       <span className="chip">♫ Automated playlist</span>
+      <span className="eq">{Array.from({ length: 7 }, (_, i) => <i key={i} style={{ ["--d" as string]: `${i * 0.13}s` }} />)}</span>
+      <span className="notes"><i>♪</i><i>♫</i><i>♪</i></span>
     </div>
   );
 }
 
 function BookArt() {
+  const [phase, setPhase] = useState(0); // 0 new, 1 booked, 2 sent to list
+  useEffect(() => { const t = setInterval(() => setPhase((x) => (x + 1) % 3), 2100); return () => clearInterval(t); }, []);
   return (
     <div className="art art-book" aria-hidden="true">
-      <div className="req">
-        <small>New booking request</small>
+      <div className={`req ${phase >= 1 ? "won" : ""}`}>
+        <small>{phase >= 1 ? "Booked" : "New booking request"}</small>
         <b>Rooftop party</b>
         <span>Saturday · 10 PM · 4 hrs</span>
-        <em>Reply</em>
+        <em>{phase >= 1 ? "✓ Confirmed" : "Reply"}</em>
       </div>
-      <div className="tix"><span>Tickets</span><b>Send to your list</b></div>
+      <div className={`tix ${phase === 2 ? "sent" : ""}`}><span>Tickets</span><b>{phase === 2 ? "✓ Sent to 128 fans" : "Send to your list"}</b><i className="fill" /></div>
     </div>
   );
 }
@@ -81,6 +81,17 @@ const PILLARS = [
   { n: "04", title: "Monetize", text: "Bookings land in your inbox, and one message fills the room.", Art: BookArt },
 ];
 
+/** Cards lean toward the pointer and a soft spotlight follows it (mouse only; skipped for reduced motion). */
+const still = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function tilt(e: PointerEvent<HTMLElement>) {
+  if (e.pointerType !== "mouse" || still()) return;
+  const el = e.currentTarget, r = el.getBoundingClientRect();
+  const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+  el.style.setProperty("--mx", `${x * 100}%`); el.style.setProperty("--my", `${y * 100}%`);
+  el.style.transform = `perspective(900px) rotateX(${(0.5 - y) * 6}deg) rotateY(${(x - 0.5) * 8}deg) translateY(-4px)`;
+}
+function untilt(e: PointerEvent<HTMLElement>) { e.currentTarget.style.transform = ""; }
+
 export function Welcome({ referrer, onStart }: { referrer: Referrer; onStart: () => void }) {
   const name = referrer.firstName;
   const intro = referrer.kind === "rep" && referrer.state === "ok"
@@ -91,8 +102,9 @@ export function Welcome({ referrer, onStart }: { referrer: Referrer; onStart: ()
   return (
     <Screen bg="stage" className="welcome">
       <Top referrer={referrer} />
-      <section className="hero rise">
-        <h1>Your next stage <em>starts here.</em></h1>
+      <div className="beams" aria-hidden="true"><i /><i /><i /></div>
+      <section className="hero">
+        <h1 className="words"><span>Your</span> <span>next</span> <span>stage</span> <em><span>starts</span> <span>here.</span></em></h1>
         <p className="lead">{intro}</p>
         <div className="herorow">
           <button className="btn acc big" onClick={onStart}>Explore the platform <Arrow /></button>
@@ -101,7 +113,7 @@ export function Welcome({ referrer, onStart }: { referrer: Referrer; onStart: ()
       </section>
       <section className="pillars">
         {PILLARS.map((p, i) => (
-          <article key={p.n} className="glass pillar rise" style={{ ["--i" as string]: i + 1 }}>
+          <article key={p.n} className="glass pillar rise" style={{ ["--i" as string]: i + 1 }} onPointerMove={tilt} onPointerLeave={untilt}>
             <p.Art />
             <div className="ptext">
               <h3><span>{p.n}</span>{p.title}{p.badge ? <em className="badge">{p.badge}</em> : null}</h3>
