@@ -20,7 +20,6 @@ export function Welcome({ referrer, onStart }: { referrer: Referrer; onStart: ()
     <Screen bg="stage" className="welcome">
       <Top referrer={referrer} />
       <section className="hero rise">
-        <p className="kick">WebX DJ</p>
         <h1>Your next stage <em>starts here.</em></h1>
         <p className="lead">{intro}</p>
         <button className="btn acc big" onClick={onStart}>See your DJ website <Arrow /></button>

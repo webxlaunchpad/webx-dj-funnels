@@ -42,9 +42,10 @@ export function PickDesign(p: { stageName: string; onStageName: (s: string) => v
             <button role="tab" aria-selected={view === "phone"} onClick={() => setView("phone")}><Phone /> Phone</button>
           </div>
           {view === "desktop"
-            ? <div className="browser"><div className="bar"><i /><i /><i /><span>{(p.stageName.trim() || "yourname").toLowerCase().replace(/[^a-z0-9]/g, "") || "yourname"}.com</span></div><img src={cur.desktop} alt={`${cur.name} design on a computer`} /></div>
-            : <div className="device"><img src={cur.phone} alt={`${cur.name} design on a phone`} /></div>}
-          <p className="cap">{cur.name}: shown with sample photos. Yours uses your name, photos and music.</p>
+            ? <div className="browser"><div className="bar"><i /><i /><i /><span>{(p.stageName.trim() || "yourname").toLowerCase().replace(/[^a-z0-9]/g, "") || "yourname"}.com</span></div>
+                <div className="scroller" key={`d-${cur.id}`} tabIndex={0} aria-label={`The whole ${cur.name} page on a computer. Scroll to see it all.`}><img src={cur.desktopFull} alt={`${cur.name} design on a computer, full page`} /></div></div>
+            : <div className="device"><div className="scroller" key={`p-${cur.id}`} tabIndex={0} aria-label={`The whole ${cur.name} page on a phone. Scroll to see it all.`}><img src={cur.phoneFull} alt={`${cur.name} design on a phone, full page`} /></div></div>}
+          <p className="cap">Scroll inside to see the whole page. {cur.name} is shown with sample photos; yours uses your name, photos and music.</p>
         </div>
       </section>
     </Screen>

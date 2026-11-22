@@ -46,7 +46,7 @@ export function Checkout(p: { cfg: Config | null; referrer: Referrer; stageName:
     let c: Card | null = null; let gone = false;
     loadSdk(p.cfg.square.sdk).then(async () => {
       payments.current = window.Square!.payments(p.cfg!.square!.applicationId, p.cfg!.square!.locationId);
-      c = await payments.current.card({ style: { input: { color: "#f4f1ec", fontSize: "16px" }, "input::placeholder": { color: "#8c8780" },
+      c = await payments.current.card({ style: { input: { color: "#1d1b19", backgroundColor: "#ffffff", fontSize: "16px" }, "input::placeholder": { color: "#77716a" },
         ".input-container": { borderColor: "rgba(255,255,255,.18)", borderRadius: "12px" }, ".input-container.is-focus": { borderColor: "#ff7a1a" },
         ".message-text": { color: "#b9b3ab" }, ".message-icon": { color: "#b9b3ab" } } });
       if (gone) return c.destroy();
@@ -100,9 +100,11 @@ export function Checkout(p: { cfg: Config | null; referrer: Referrer; stageName:
         <form className="glass co-form rise" style={{ ["--i" as string]: 1 }} onSubmit={(e) => { e.preventDefault(); void pay(); }}>
           <p className="kick">Step 2</p>
           <h1 className="h2">Checkout</h1>
-          <label className="field"><span>Full name</span><input value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" maxLength={120} /></label>
+          <div className="pair">
+            <label className="field"><span>Full name</span><input value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" maxLength={120} /></label>
+            <label className="field"><span>Phone</span><input value={phone} onChange={(e) => setPhone(e.target.value)} type="tel" autoComplete="tel" maxLength={30} /></label>
+          </div>
           <label className="field"><span>Email</span><input value={email} onChange={(e) => setEmail(e.target.value)} type="email" autoComplete="email" maxLength={200} /><em>Your DJ Hub sign-in and receipts go here.</em></label>
-          <label className="field"><span>Phone</span><input value={phone} onChange={(e) => setPhone(e.target.value)} type="tel" autoComplete="tel" maxLength={30} /></label>
           <div className="field"><span>Card</span>
             <div id="card" className="card-box" data-state={state} />
             {state === "loading" ? <em>Loading secure card form…</em> : state === "unavailable" ? <em className="err">Payments aren't available right now. Please try again in a few minutes.</em> : null}
