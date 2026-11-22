@@ -383,3 +383,54 @@ h3{font-size:18px;font-weight:700}
 .part[data-on=true] .prog{transform:scaleX(1);animation:prog 3.4s linear}
 @keyframes prog{from{transform:scaleX(0)}}
 @media (prefers-reduced-motion:reduce){.part[data-on=true] .prog,.part[data-on=true] .ico{animation:none}}
+
+/* ── Round of polish (Kayla) ── */
+.top{padding-top:clamp(20px,3.6vh,34px)}
+.herorow{flex-direction:column;align-items:flex-start;gap:10px}
+/* equal cards: art takes the same height in every card, text fills the rest */
+.pillars{align-items:stretch}
+.pillar{display:grid;grid-template-rows:clamp(150px,24vh,250px) 1fr}
+.pillar .art{flex:none;min-height:0;height:100%}
+.ptext h3{min-height:2.6em;align-content:flex-start}
+/* QR: no orange; clean white viewfinder */
+.qr{box-shadow:0 0 0 1px rgba(255,255,255,.18),0 24px 50px -16px #000}
+.qr .lock{border-color:rgba(255,255,255,.95)}
+.qr .sweep{background:linear-gradient(180deg,transparent,rgba(255,255,255,.55),transparent);mix-blend-mode:difference;opacity:.5}
+.art{background:radial-gradient(120% 90% at 50% 0%,rgba(255,255,255,.07),transparent 60%),linear-gradient(180deg,rgba(255,255,255,.04),rgba(0,0,0,.25))}
+/* Chart, polished */
+.art-grow{display:flex;flex-direction:column;padding:14px 14px 10px}
+.ghead{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;font-weight:700;letter-spacing:.04em;color:var(--ink-3);text-transform:uppercase}
+.art-grow .eq{position:static;height:14px}.art-grow .eq i{width:3px}
+@keyframes eq{from{height:3px}to{height:14px}}
+.art-grow svg{position:static;flex:1;width:100%;height:auto;min-height:0;margin-top:8px;overflow:visible}
+.art-grow .grid{stroke:rgba(255,255,255,.07);stroke-width:1;stroke-dasharray:3 4;vector-effect:non-scaling-stroke}
+.art-grow .line{fill:none;stroke-width:2.6;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.art-grow .glow{fill:none;stroke:#ff7a1a;stroke-width:8;opacity:.18;filter:blur(3px);vector-effect:non-scaling-stroke}
+.art-grow .pin{position:absolute;right:14px;top:calc(14px + 22px);width:12px;height:12px;border-radius:50%;background:#ff9a4d;box-shadow:0 0 0 4px rgba(255,154,77,.25);transform:translate(50%,-10%);opacity:0;animation:fade .4s 2.6s forwards}
+.art-grow .pin b{position:absolute;inset:-6px;border-radius:50%;border:2px solid rgba(255,154,77,.6);animation:pulse 1.8s ease-out infinite}
+@keyframes pulse{from{transform:scale(.6);opacity:1}to{transform:scale(1.8);opacity:0}}
+.xaxis{display:flex;justify-content:space-between;margin-top:6px;font-size:10px;color:var(--ink-3);letter-spacing:.04em}
+.notes{display:none}
+/* Monetize, stronger */
+.art-book{padding:16px;gap:12px}
+.req{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;padding:12px;border-radius:16px}
+.date{width:44px;height:48px;border-radius:12px;background:#1d1b19;color:#f5f2ed;display:grid;place-items:center;align-content:center;line-height:1}
+.date small{font-size:9.5px;font-weight:800;letter-spacing:.1em;color:#ff9a4d}.date b{font-size:20px;margin-top:2px}
+.rtext small{display:block}.rtext b{font-size:15px}.rtext span{font-size:12px;color:#6b655e}
+.fee{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.fee b{font-size:18px;color:#1d1b19}
+.req em{position:static;font-size:11.5px}
+.req.won{box-shadow:0 0 0 2px rgba(62,207,142,.6),0 18px 40px -14px #000}
+.burst{position:absolute;right:34px;top:50%;width:0;height:0}
+.burst i{position:absolute;width:6px;height:6px;border-radius:2px;background:#ff9a4d;animation:burst .8s ease-out forwards;transform:rotate(var(--a)) translateY(0)}
+.burst i:nth-child(odd){background:#3ecf8e}
+@keyframes burst{to{transform:rotate(var(--a)) translateY(-34px);opacity:0}}
+.tix{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04)}
+.ticon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:rgba(255,122,26,.16);font-size:16px}
+.tix small{display:block;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.tix b{color:var(--ink);font-size:13.5px}
+.tix.sent{border-color:rgba(62,207,142,.55)}.tix.sent b{color:#bff3dc}
+.tix .fill{background:linear-gradient(90deg,rgba(62,207,142,.22),rgba(62,207,142,.04))}
+.art-grow .plot{position:relative;flex:1;min-height:0;margin-top:8px}
+.art-grow .plot svg{position:absolute;inset:0;width:100%;height:100%;margin:0}
+.art-grow .pin{right:0;top:7%;transform:translate(50%,-50%)}

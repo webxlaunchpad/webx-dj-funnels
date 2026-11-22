@@ -6,7 +6,6 @@ import type { Referrer } from "../main";
 import { Foot, Screen, Top } from "./Shell";
 
 // Slide 1: the platform in four pillars (the same story as the Lovable funnel), drawn in the new look.
-const VIBES: Record<string, string> = { noctis: "DJ Artist", nocturne: "Club DJ", volta: "Festival DJ", "august-vale": "Event DJ" };
 
 function BrandArt() {
   const [on, setOn] = useState(0);
@@ -17,7 +16,6 @@ function BrandArt() {
         const pos = (i - on + DESIGNS.length) % DESIGNS.length; // 0 = front
         return <img key={d.id} src={d.phone} alt="" data-pos={pos} loading="lazy" />;
       })}
-      <span className="chip">{VIBES[DESIGNS[on]!.id]}</span>
     </div>
   );
 }
@@ -41,35 +39,45 @@ function QrArt() {
   );
 }
 
+const CURVE = "M0 86 C18 84 30 80 44 76 S70 70 84 62 S112 52 126 42 S154 28 168 20 S190 10 200 7";
 function GrowArt() {
   return (
     <div className="art art-grow" aria-hidden="true">
+      <div className="ghead"><span>Monthly listeners</span><span className="eq">{Array.from({ length: 5 }, (_, i) => <i key={i} style={{ ["--d" as string]: `${i * 0.15}s` }} />)}</span></div>
+      <div className="plot">
       <svg viewBox="0 0 200 100" preserveAspectRatio="none">
-        <defs><linearGradient id="gr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#ff7a1a" stopOpacity=".45" /><stop offset="1" stopColor="#ff7a1a" stopOpacity="0" /></linearGradient></defs>
-        {[20, 45, 70].map((y) => <line key={y} x1="0" x2="200" y1={y} y2={y} className="grid" />)}
-        <path className="area" d="M0 92 C30 88 45 84 60 78 S95 70 110 58 S145 40 160 30 S190 12 200 8 L200 100 L0 100Z" fill="url(#gr)" />
-        <path className="line" d="M0 92 C30 88 45 84 60 78 S95 70 110 58 S145 40 160 30 S190 12 200 8" />
-        <circle cx="200" cy="8" r="3.5" className="dot" />
+        <defs>
+          <linearGradient id="gr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#ff8a33" stopOpacity=".38" /><stop offset=".7" stopColor="#ff8a33" stopOpacity=".06" /><stop offset="1" stopColor="#ff8a33" stopOpacity="0" /></linearGradient>
+          <linearGradient id="gl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#ffb27a" stopOpacity=".5" /><stop offset="1" stopColor="#ff7a1a" /></linearGradient>
+        </defs>
+        {[25, 50, 75].map((y) => <line key={y} x1="0" x2="200" y1={y} y2={y} className="grid" />)}
+        <path className="area" d={`${CURVE} L200 100 L0 100Z`} fill="url(#gr)" />
+        <path className="glow" d={CURVE} />
+        <path className="line" d={CURVE} stroke="url(#gl)" />
       </svg>
-      <span className="chip">♫ Automated playlist</span>
-      <span className="eq">{Array.from({ length: 7 }, (_, i) => <i key={i} style={{ ["--d" as string]: `${i * 0.13}s` }} />)}</span>
-      <span className="notes"><i>♪</i><i>♫</i><i>♪</i></span>
+      <i className="pin"><b /></i>
+      </div>
+      <div className="xaxis"><span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span></div>
     </div>
   );
 }
 
 function BookArt() {
-  const [phase, setPhase] = useState(0); // 0 new, 1 booked, 2 sent to list
-  useEffect(() => { const t = setInterval(() => setPhase((x) => (x + 1) % 3), 2100); return () => clearInterval(t); }, []);
+  const [phase, setPhase] = useState(0); // 0 request, 1 booked, 2 tickets sent
+  useEffect(() => { const t = setInterval(() => setPhase((x) => (x + 1) % 3), 2300); return () => clearInterval(t); }, []);
   return (
     <div className="art art-book" aria-hidden="true">
       <div className={`req ${phase >= 1 ? "won" : ""}`}>
-        <small>{phase >= 1 ? "Booked" : "New booking request"}</small>
-        <b>Rooftop party</b>
-        <span>Saturday · 10 PM · 4 hrs</span>
-        <em>{phase >= 1 ? "✓ Confirmed" : "Reply"}</em>
+        <div className="date"><small>SAT</small><b>14</b></div>
+        <div className="rtext"><small>{phase >= 1 ? "Booked" : "Booking request"}</small><b>Rooftop party</b><span>10 PM · 4 hrs</span></div>
+        <div className="fee"><b>$800</b><em>{phase >= 1 ? "✓ Booked" : "Accept"}</em></div>
+        {phase === 1 ? <span className="burst">{Array.from({ length: 8 }, (_, i) => <i key={i} style={{ ["--a" as string]: `${i * 45}deg` }} />)}</span> : null}
       </div>
-      <div className={`tix ${phase === 2 ? "sent" : ""}`}><span>Tickets</span><b>{phase === 2 ? "✓ Sent to 128 fans" : "Send to your list"}</b><i className="fill" /></div>
+      <div className={`tix ${phase === 2 ? "sent" : ""}`}>
+        <span className="ticon">🎟</span>
+        <div><small>Next show</small><b>{phase === 2 ? "Tickets sent to 128 fans" : "Send tickets to your list"}</b></div>
+        <i className="fill" />
+      </div>
     </div>
   );
 }
