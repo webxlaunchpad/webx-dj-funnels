@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { checkout, money, uuid, type Config } from "../api";
 import { DESIGNS, type DesignId } from "../designs";
-import { Back, Check, Lock } from "../icons";
+import { Back, Lock } from "../icons";
 import type { Referrer } from "../main";
 import { Screen, Top } from "./Shell";
 
@@ -12,12 +12,13 @@ type Payments = { card(o?: unknown): Promise<Card>; verifyBuyer?(token: string, 
 declare global { interface Window { Square?: { payments(appId: string, locationId: string): Payments } } }
 
 const INCLUDED = [
-  "Your DJ website on your own domain (domain included)",
-  "QR landing page that grows your fan list",
-  "booking@yourdomain inbox inside DJ Hub",
-  "Hosting, security and updates handled for you",
-  "DJ Hub: edit anytime, switch designs, see your stats",
-];
+  ["Capture system", "QR and links that turn the crowd into contacts."],
+  ["Landing page", "One link for your music, shows and bookings."],
+  ["Hosting", "Fast, secure, handled for you."],
+  ["Email", "Reach your list whenever you drop something new."],
+  ["CRM", "Every fan, booking and contact in one place."],
+  ["Website", "Your full DJ site on your own domain, in your vibe."],
+] as const;
 
 function loadSdk(src: string): Promise<void> {
   return new Promise((ok, fail) => {
@@ -46,7 +47,7 @@ export function Checkout(p: { cfg: Config | null; referrer: Referrer; stageName:
     let c: Card | null = null; let gone = false;
     loadSdk(p.cfg.square.sdk).then(async () => {
       payments.current = window.Square!.payments(p.cfg!.square!.applicationId, p.cfg!.square!.locationId);
-      c = await payments.current.card({ style: { input: { color: "#f4f1ec", fontSize: "16px" }, "input::placeholder": { color: "#8c8780" },
+      c = await payments.current.card({ style: { input: { color: "#1d1b19", backgroundColor: "#ffffff", fontSize: "16px" }, "input::placeholder": { color: "#77716a" },
         ".input-container": { borderColor: "rgba(255,255,255,.18)", borderRadius: "12px" }, ".input-container.is-focus": { borderColor: "#ff7a1a" },
         ".message-text": { color: "#b9b3ab" }, ".message-icon": { color: "#b9b3ab" } } });
       if (gone) return c.destroy();
@@ -89,8 +90,9 @@ export function Checkout(p: { cfg: Config | null; referrer: Referrer; stageName:
       <section className="co-grid">
         <div className="glass co-sum rise">
           <p className="kick">Your order</p>
-          <div className="co-item"><img src={d.phone} alt="" /><div><b>WebX DJ website</b><span>{p.stageName || "Your DJ name"} · {d.name} design</span></div></div>
-          <ul className="incl">{INCLUDED.map((x) => <li key={x}><Check />{x}</li>)}</ul>
+          <div className="co-item"><img src={d.phone} alt="" /><div><b>WebX DJ website</b><span>{p.stageName ? `${p.stageName} · ` : ""}{d.name} design</span></div></div>
+          <p className="incl-k">What's included</p>
+          <ul className="incl2">{INCLUDED.map(([t, d], i) => <li key={t}><b>0{i + 1}</b><span><strong>{t}</strong><small>{d}</small></span></li>)}</ul>
           <div className="co-lines">
             <div><span>Setup today</span><b>{money(price.setupCents)}</b></div>
             <div><span>Then monthly, from {nextFirst()}</span><b>{money(price.monthlyCents)}/mo</b></div>
@@ -100,9 +102,11 @@ export function Checkout(p: { cfg: Config | null; referrer: Referrer; stageName:
         <form className="glass co-form rise" style={{ ["--i" as string]: 1 }} onSubmit={(e) => { e.preventDefault(); void pay(); }}>
           <p className="kick">Step 2</p>
           <h1 className="h2">Checkout</h1>
-          <label className="field"><span>Full name</span><input value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" maxLength={120} /></label>
+          <div className="pair">
+            <label className="field"><span>Full name</span><input value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" maxLength={120} /></label>
+            <label className="field"><span>Phone</span><input value={phone} onChange={(e) => setPhone(e.target.value)} type="tel" autoComplete="tel" maxLength={30} /></label>
+          </div>
           <label className="field"><span>Email</span><input value={email} onChange={(e) => setEmail(e.target.value)} type="email" autoComplete="email" maxLength={200} /><em>Your DJ Hub sign-in and receipts go here.</em></label>
-          <label className="field"><span>Phone</span><input value={phone} onChange={(e) => setPhone(e.target.value)} type="tel" autoComplete="tel" maxLength={30} /></label>
           <div className="field"><span>Card</span>
             <div id="card" className="card-box" data-state={state} />
             {state === "loading" ? <em>Loading secure card form…</em> : state === "unavailable" ? <em className="err">Payments aren't available right now. Please try again in a few minutes.</em> : null}

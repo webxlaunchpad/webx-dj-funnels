@@ -1,29 +1,37 @@
-import { Arrow, Back, Chart, Mail, Qr, Users } from "../icons";
+import { useEffect, useState } from "react";
+import { Arrow, Back, Megaphone, Music, Qr, Ticket, Trend } from "../icons";
 import type { Referrer } from "../main";
 import { Screen, Top } from "./Shell";
 
 const PARTS = [
-  { icon: Qr, kick: "Capture", title: "Every gig grows your list", text: "Your QR code goes on screen or on the booth. Fans scan it, land on your page and join your list in seconds." },
-  { icon: Users, title: "Keep them coming back", kick: "Engage", text: "See who signed up, where, and when. Share new mixes and dates with the fans who already love your sets." },
-  { icon: Mail, title: "Bookings, straight to you", kick: "Get booked", text: "A booking button on your site and booking@yourdomain.com that lands in your own DJ Hub inbox." },
-  { icon: Chart, title: "See what's working", kick: "Grow", text: "Visits, scans and booking clicks in one simple dashboard, so you know which gigs pay off." },
+  { icon: Qr, kick: "Capture", title: "Fans scan your QR and join your list.", text: "One scan turns someone in the crowd into someone you can reach again." },
+  { icon: Music, kick: "Engage", title: "They unlock your mixes, videos and music.", text: "Move them from the moment to your latest set, and something worth coming back for." },
+  { icon: Megaphone, kick: "Promote", title: "You send your next show to every fan.", text: "New mix? Another show? You already know who to reach." },
+  { icon: Trend, kick: "Grow", title: "Grow between sets with automated playlisting.", text: "Your music keeps finding new listeners while you're off stage.", badge: "Coming Q1 2027" },
+  { icon: Ticket, kick: "Monetize", title: "Your list turns into bookings and tickets sold.", text: "Booking requests land in your inbox. Tickets to sell? One message and your fans fill the room." },
 ];
 
 export function System({ referrer, onBack, onNext }: { referrer: Referrer; onBack: () => void; onNext: () => void }) {
+  // Walks through the five steps on its own; hover or tap a step to look at it (pauses the walk).
+  const [on, setOn] = useState(0);
+  const [held, setHeld] = useState(false);
+  useEffect(() => { if (held) return; const t = setInterval(() => setOn((x) => (x + 1) % PARTS.length), 3400); return () => clearInterval(t); }, [held]);
   return (
     <Screen bg="beams" className="system">
       <Top at={0} referrer={referrer} />
       <section className="sys rise">
         <p className="kick">The system</p>
-        <h1 className="h2">More than a website.</h1>
-        <p className="lead">Everything a working DJ needs, set up for you and run from one place: your DJ Hub.</p>
+        <h1 className="h2">Own your <em>audience.</em></h1>
+        <p className="lead">Capture, engage, promote, grow and monetize, all run from one place: your DJ Hub.</p>
         <div className="parts">
           {PARTS.map((x, i) => (
-            <article key={x.kick} className="glass part rise" style={{ ["--i" as string]: i + 1 }}>
+            <article key={x.kick} className="glass part rise" data-on={on === i} style={{ ["--i" as string]: i + 1 }}
+              tabIndex={0} onMouseEnter={() => { setOn(i); setHeld(true); }} onMouseLeave={() => setHeld(false)} onFocus={() => { setOn(i); setHeld(true); }} onBlur={() => setHeld(false)} onClick={() => { setOn(i); setHeld(true); }}>
               <span className="ico"><x.icon /></span>
-              <p className="kick sm">{x.kick}</p>
+              <p className="kick sm"><b className="pn">0{i + 1}</b>{x.kick}{x.badge ? <em className="badge">{x.badge}</em> : null}</p>
               <h3>{x.title}</h3>
               <p>{x.text}</p>
+              <i className="prog" key={on === i && !held ? `run${on}` : "still"} />
             </article>
           ))}
         </div>

@@ -1,9 +1,10 @@
 import type { ReactNode } from "react";
 import { Check } from "../icons";
+import logo from "../img/webx-logo.png";
 import type { Referrer } from "../main";
 
 export function Logo() {
-  return <a className="logo" href="/" aria-label="WebX DJ"><span className="mark">X</span><span>WebX <b>DJ</b></span></a>;
+  return <a className="logo" href="/" aria-label="WebX home"><img src={logo} alt="WebX" width={82} height={34} /></a>;
 }
 
 const STEPS = ["Your site", "Checkout", "Setup"] as const;
