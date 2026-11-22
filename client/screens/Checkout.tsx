@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { checkout, money, uuid, type Config } from "../api";
 import { DESIGNS, type DesignId } from "../designs";
-import { Back, Check, Lock } from "../icons";
+import { Back, Lock } from "../icons";
 import type { Referrer } from "../main";
 import { Screen, Top } from "./Shell";
 
@@ -12,12 +12,13 @@ type Payments = { card(o?: unknown): Promise<Card>; verifyBuyer?(token: string, 
 declare global { interface Window { Square?: { payments(appId: string, locationId: string): Payments } } }
 
 const INCLUDED = [
-  "Your DJ website on your own domain (domain included)",
-  "QR landing page that grows your fan list",
-  "booking@yourdomain inbox inside DJ Hub",
-  "Hosting, security and updates handled for you",
-  "DJ Hub: edit anytime, switch designs, see your stats",
-];
+  ["Capture system", "QR and links that turn the crowd into contacts."],
+  ["Landing page", "One link for your music, shows and bookings."],
+  ["Hosting", "Fast, secure, handled for you."],
+  ["Email", "Reach your list whenever you drop something new."],
+  ["CRM", "Every fan, booking and contact in one place."],
+  ["Website", "Your full DJ site on your own domain, in your vibe."],
+] as const;
 
 function loadSdk(src: string): Promise<void> {
   return new Promise((ok, fail) => {
@@ -90,7 +91,8 @@ export function Checkout(p: { cfg: Config | null; referrer: Referrer; stageName:
         <div className="glass co-sum rise">
           <p className="kick">Your order</p>
           <div className="co-item"><img src={d.phone} alt="" /><div><b>WebX DJ website</b><span>{p.stageName ? `${p.stageName} · ` : ""}{d.name} design</span></div></div>
-          <ul className="incl">{INCLUDED.map((x) => <li key={x}><Check />{x}</li>)}</ul>
+          <p className="incl-k">What's included</p>
+          <ul className="incl2">{INCLUDED.map(([t, d], i) => <li key={t}><b>0{i + 1}</b><span><strong>{t}</strong><small>{d}</small></span></li>)}</ul>
           <div className="co-lines">
             <div><span>Setup today</span><b>{money(price.setupCents)}</b></div>
             <div><span>Then monthly, from {nextFirst()}</span><b>{money(price.monthlyCents)}/mo</b></div>

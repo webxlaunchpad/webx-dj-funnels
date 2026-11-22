@@ -15,4 +15,8 @@ export const Chart = I('<path d="M3 3v18h18"/><path d="m7 14 4-4 3 3 5-6"/>');
 export const Cash = I('<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 10v4M18 10v4"/>');
 export const Brush = I('<path d="M9.06 11.9 18.07 2.9a2.12 2.12 0 0 1 3 3l-9 9"/><path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04a3.01 3.01 0 0 0-3-3.02z"/>');
 export const Users = I('<circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0"/><path d="M16 3.13a4 4 0 0 1 0 7.75M22 21a7 7 0 0 0-5-6.7"/>');
+export const Music = I('<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>');
+export const Megaphone = I('<path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>');
+export const Ticket = I('<path d="M3 9a3 3 0 0 0 0 6v2a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2a3 3 0 0 0 0-6V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z"/><path d="M13 5v2M13 17v2M13 11v2"/>');
+export const Trend = I('<path d="m22 7-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/>');
 export const Spin = () => <span className="spin" aria-hidden="true" />;
