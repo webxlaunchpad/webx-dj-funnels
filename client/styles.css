@@ -306,3 +306,19 @@ h3{font-size:18px;font-weight:700}
 .incl2 b{font-size:11px;font-weight:800;color:var(--acc);padding-top:2px}
 .incl2 strong{display:block;font-size:14px}.incl2 small{display:block;font-size:12px;line-height:1.35;color:var(--ink-3)}
 @media (max-width:480px){.incl2{grid-template-columns:1fr}}
+/* Fixes from the screenshot pass */
+.pair>.field{min-width:0}.field input{width:100%}
+.art .chip{z-index:6}
+.art-brand img{width:min(38%,150px)}
+@media (min-width:901px){
+  .welcome .hero{padding-top:clamp(4px,3vh,48px)}
+  .welcome h1{font-size:clamp(40px,min(6.2vw,9.4vh),90px)}
+  .pillars{margin-bottom:clamp(24px,5vh,64px)}
+  .foot{padding-top:clamp(6px,1.2vh,16px)}
+}
+@media (min-width:901px) and (max-height:820px){
+  .pick .field em{display:none}
+  .incl2 small{display:none}
+  .incl2 li{padding:8px 10px}
+  .co-sum .tiny{display:none}
+}
