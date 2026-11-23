@@ -65,6 +65,14 @@ async function core(env: Env, method: "GET" | "POST", path: string, body?: unkno
   return { status: res.status, data: data ?? {} };
 }
 
+/** One-way visitor id for click counts: who (IP + browser) and today's date, hashed. Not reversible to a person. */
+async function visitorHash(req: Request): Promise<string> {
+  const day = new Date().toISOString().slice(0, 10);
+  const raw = `${req.headers.get("cf-connecting-ip") ?? ""}|${req.headers.get("user-agent") ?? ""}|${day}|webx-link-visit`;
+  const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(raw));
+  return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 function enabled(env: Env, kind: Kind) {
   return kind === "direct" || (kind === "affiliate" ? env.AFFILIATE_FUNNEL === "on" : env.REP_FUNNEL === "on");
 }
@@ -77,7 +85,7 @@ async function readBody<T>(req: Request, max = 16_000): Promise<T | null> {
 const str = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 
 export default {
-  async fetch(req: Request, env: Env): Promise<Response> {
+  async fetch(req: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(req.url); const p = url.pathname;
     try {
       if (p === "/health") return json({ ok: true, service: "webx-dj-funnels", environment: env.ENVIRONMENT });
@@ -101,7 +109,11 @@ export default {
         if (!enabled(env, kind)) return json({ error: "off" }, 404);
         if (!HANDLE.test(handle)) return json({ error: "not_found" }, 404);
         const r = await core(env, "GET", `/v1/checkout/links/${kind}/${handle}`);
-        return r.status === 200 ? json({ kind, handle, firstName: r.data.firstName ?? null }) : json({ error: "not_found" }, 404);
+        if (r.status !== 200) return json({ error: "not_found" }, 404);
+        // Count the click for the affiliate's/rep's dashboard: a one-way hash of who + today, never the IP itself.
+        ctx.waitUntil(visitorHash(req).then((visitor) => core(env, "POST", `/v1/checkout/links/${kind}/${handle}/visit`, { visitor },
+          { "x-webx-buyer-ip": req.headers.get("cf-connecting-ip") ?? "" })).catch(() => {}));
+        return json({ kind, handle, firstName: r.data.firstName ?? null });
       }
 
       if (p === "/api/domain-check" && req.method === "POST") {
