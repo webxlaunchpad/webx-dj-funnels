@@ -85,7 +85,7 @@ async function readBody<T>(req: Request, max = 16_000): Promise<T | null> {
 const str = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 
 export default {
-  async fetch(req: Request, env: Env): Promise<Response> {
+  async fetch(req: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(req.url); const p = url.pathname;
     try {
       if (p === "/health") return json({ ok: true, service: "webx-dj-funnels", environment: env.ENVIRONMENT });
