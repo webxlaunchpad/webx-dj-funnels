@@ -6,6 +6,8 @@
 // through WebX Core over a private service binding (CORE). Square's card form runs in the browser
 // and only ever hands us a one-time card token.
 
+import { TURNSTILE_MESSAGE, turnstilePass, turnstileSiteKey } from "./turnstile";
+
 export interface Env {
   ASSETS: Fetcher;
   CORE: Fetcher;                       // service binding → webx-core / webx-core-test
@@ -17,6 +19,8 @@ export interface Env {
   SQUARE_LOCATION_ID: string;          // public
   AFFILIATE_FUNNEL: "on" | "off";      // /a/ links; off until Kris approves on live
   REP_FUNNEL: "on" | "off";            // /r/ links; off until Kris approves on live
+  TURNSTILE_SITE_KEY?: string;         // public; bot check on checkout (see turnstile.ts)
+  TURNSTILE_SECRET?: string;           // secret, pushed from GitHub on deploy
 }
 
 type Kind = "direct" | "affiliate" | "rep";
@@ -38,13 +42,13 @@ const SECURITY: Record<string, string> = {
   "strict-transport-security": "max-age=31536000; includeSubDomains",
   "content-security-policy": [
     "default-src 'self'",
-    "script-src 'self' https://connect.facebook.net https://analytics.tiktok.com https://web.squarecdn.com https://sandbox.web.squarecdn.com https://js.squareup.com https://js.squareupsandbox.com",
+    "script-src 'self' https://challenges.cloudflare.com https://connect.facebook.net https://analytics.tiktok.com https://web.squarecdn.com https://sandbox.web.squarecdn.com https://js.squareup.com https://js.squareupsandbox.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://web.squarecdn.com https://sandbox.web.squarecdn.com",
     "font-src 'self' https://fonts.gstatic.com https://square-fonts-production-f.squarecdn.com https://d1g145x70srn7h.cloudfront.net",
     "img-src 'self' data: https:",
     "media-src 'self'",
     "connect-src 'self' https://www.facebook.com https://connect.facebook.net https://analytics.tiktok.com https://analytics-ipv6.tiktokw.us https://pci-connect.squareup.com https://pci-connect.squareupsandbox.com https://o160250.ingest.sentry.io",
-    "frame-src https://web.squarecdn.com https://sandbox.web.squarecdn.com https://geoissuer.cardinalcommerce.com https://api.squareup.com https://api.squareupsandbox.com https://connect.squareup.com https://connect.squareupsandbox.com",
+    "frame-src https://challenges.cloudflare.com https://web.squarecdn.com https://sandbox.web.squarecdn.com https://geoissuer.cardinalcommerce.com https://api.squareup.com https://api.squareupsandbox.com https://connect.squareup.com https://connect.squareupsandbox.com",
     "frame-ancestors 'none'", "base-uri 'none'", "form-action 'self'",
   ].join("; "),
 };
@@ -100,6 +104,7 @@ export default {
             applicationId: env.SQUARE_APPLICATION_ID, locationId: env.SQUARE_LOCATION_ID,
             sdk: sandbox ? "https://sandbox.web.squarecdn.com/v1/square.js" : "https://web.squarecdn.com/v1/square.js",
           } : null,
+          turnstile: turnstileSiteKey(env),
           prices: PRICE, funnels: { affiliate: env.AFFILIATE_FUNNEL === "on", rep: env.REP_FUNNEL === "on" },
           // Ad pixels: public IDs, set per environment in wrangler.jsonc (live only, so test runs don't count as ads results).
           pixels: env.META_PIXEL_ID || env.TIKTOK_PIXEL_ID ? { meta: env.META_PIXEL_ID || null, tiktok: env.TIKTOK_PIXEL_ID || null } : null,
@@ -133,6 +138,8 @@ export default {
         const kind = (["direct", "affiliate", "rep"].includes(String(b?.kind)) ? b!.kind : "") as Kind | "";
         const key = str(b?.key, 40); const sourceId = str(b?.sourceId, 500);
         if (!kind || !enabled(env, kind) || !UUID.test(key) || !sourceId) return json({ ok: false, message: "Something's missing. Refresh the page and try again." }, 400);
+        // Bot check before anything reaches Core or Square (stops card-testing bots).
+        if (!(await turnstilePass(env, b?.turnstile, req.headers.get("cf-connecting-ip")))) return json({ ok: false, message: TURNSTILE_MESSAGE + " You were not charged." }, 403);
         const handle = kind === "direct" ? undefined : str(b?.handle, 32).toLowerCase();
         if (kind !== "direct" && !HANDLE.test(handle ?? "")) return json({ ok: false, message: "This link isn't valid. Ask the person who sent it for a new one." }, 400);
         const c = (b?.customer ?? {}) as Record<string, unknown>; const d = (b?.details ?? {}) as Record<string, unknown>;

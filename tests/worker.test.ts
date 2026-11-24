@@ -66,3 +66,26 @@ test("returning visitors get 'not changed' passed through, never 'Page unavailab
   const bad = await worker.fetch(new Request("https://f.test/"), e2);
   assert.equal(bad.status, 502); assert.equal(bad.headers.get("location"), null); assert.match(bad.headers.get("content-type") ?? "", /text\/html/);
 });
+
+test("checkout bot check: off without keys, required with them, before Core is asked", async () => {
+  const sessions: [number, unknown] = [201, { checkoutSessionId: "s1", terms: { setup: { amountCents: 9900 } } }];
+  const body = (turnstile?: string) => ({ kind: "direct", key: KEY, sourceId: "cnon:x", customer: { email: "a@b.co" }, turnstile });
+  const off = env({}, { "/v1/checkout/sessions": sessions });
+  assert.equal(((await (await worker.fetch(new Request("https://f.test/api/config"), off.e)).json()) as { turnstile: unknown }).turnstile, null);
+  await worker.fetch(post("/api/checkout", body()), off.e);
+  assert.ok(off.calls.length > 0, "no keys: works as before");
+
+  const on = env({ TURNSTILE_SITE_KEY: "0x4AAAsite", TURNSTILE_SECRET: "0x4AAAsecret" }, { "/v1/checkout/sessions": sessions });
+  assert.equal(((await (await worker.fetch(new Request("https://f.test/api/config"), on.e)).json()) as { turnstile: unknown }).turnstile, "0x4AAAsite");
+  const realFetch = globalThis.fetch;
+  try {
+    globalThis.fetch = (async () => new Response(JSON.stringify({ success: false }))) as typeof fetch;
+    const r1 = await worker.fetch(post("/api/checkout", body()), on.e);
+    assert.equal(r1.status, 403); assert.equal(on.calls.length, 0, "no token: Core never asked");
+    const r2 = await worker.fetch(post("/api/checkout", body("bot-token-xxxxxxxx")), on.e);
+    assert.equal(r2.status, 403); assert.equal(on.calls.length, 0, "bad token: Core never asked");
+    globalThis.fetch = (async () => new Response(JSON.stringify({ success: true }))) as typeof fetch;
+    await worker.fetch(post("/api/checkout", body("good-token-xxxxxxxx")), on.e);
+    assert.ok(on.calls.length > 0, "good token: goes on to Core");
+  } finally { globalThis.fetch = realFetch; }
+});

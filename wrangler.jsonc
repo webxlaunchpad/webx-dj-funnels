@@ -14,7 +14,7 @@
     "test": {
       "name": "webx-dj-funnels-test",
       "vars": {
-        "ENVIRONMENT": "test",
+        "ENVIRONMENT": "test", "TURNSTILE_SITE_KEY": "0x4AAAAAAGRIegQKZBoKvCBS",
         "CORE_URL": "https://webx-core-test.webxlaunchpad.workers.dev",
         "SQUARE_LOCATION_ID": "L6K03ZBG5D828",
         "AFFILIATE_FUNNEL": "on",
@@ -25,7 +25,7 @@
     "live": {
       "name": "webx-dj-funnels",
       "vars": {
-        "ENVIRONMENT": "live",
+        "ENVIRONMENT": "live", "TURNSTILE_SITE_KEY": "0x4AAAAAAGRI8NueO21jHVb4",
         "CORE_URL": "https://webx-core.webxlaunchpad.workers.dev",
         "SQUARE_LOCATION_ID": "L7BNAT9F01DB3",
         "AFFILIATE_FUNNEL": "off",
