@@ -8,6 +8,7 @@ import { System } from "./screens/System";
 import { Checkout, type Buyer } from "./screens/Checkout";
 import { Setup } from "./screens/Setup";
 import { Legal } from "./screens/Legal";
+import { startPixels, track } from "./pixels";
 
 // Which funnel: / (automated), /a/<name> (affiliate), /r/<name or number> (rep).
 function route(): { kind: Kind; handle: string | null; legal: "privacy" | "terms" | null } {
@@ -30,7 +31,8 @@ function App() {
   const [design, setDesign] = useState<DesignId>("nocturne");
   const [buyer, setBuyer] = useState<Buyer | null>(null);
 
-  useEffect(() => { getConfig().then(setCfg).catch(() => setCfg(null)); }, []);
+  useEffect(() => { getConfig().then((c) => { setCfg(c); startPixels(c); }).catch(() => setCfg(null)); }, []);
+  useEffect(() => { if (step === "system") track("ViewContent"); if (step === "checkout") track("InitiateCheckout"); }, [step, cfg]);
   useEffect(() => {
     if (r.kind === "direct" || !r.handle) return;
     getLink(r.kind, r.handle).then((l) => setRef((x) => ({ ...x, firstName: l?.firstName ?? null, state: l ? "ok" : "missing" })));
@@ -56,7 +58,7 @@ function App() {
     : step === "design" ? <PickDesign stageName={stageName} onStageName={setStageName} design={design} onDesign={setDesign} onBack={go("welcome")} onNext={go("system")} />
     : step === "system" ? <System referrer={ref} onBack={go("design")} onNext={go("checkout")} />
     : step === "checkout" ? <Checkout cfg={cfg} referrer={ref} stageName={stageName} design={design} onBack={go("system")}
-        onPaid={(b) => { setBuyer(b); try { localStorage.setItem(SAVED, JSON.stringify({ buyer: b, at: Date.now(), path: location.pathname })); } catch { /* ignore */ } setStep("setup"); }} />
+        onPaid={(b) => { track("Purchase", { value: (cfg?.prices[ref.kind]?.setupCents ?? (ref.kind === "direct" ? 9900 : 14900)) / 100, eventId: `webx-${b.key}` }); setBuyer(b); try { localStorage.setItem(SAVED, JSON.stringify({ buyer: b, at: Date.now(), path: location.pathname })); } catch { /* ignore */ } setStep("setup"); }} />
     : <Setup buyer={buyer} stageName={stageName} />;
 }
 
