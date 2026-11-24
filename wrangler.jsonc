@@ -31,7 +31,7 @@
         "AFFILIATE_FUNNEL": "off",
         "REP_FUNNEL": "off",
         "META_PIXEL_ID": "3089262921275849",
-        "TIKTOK_PIXEL_ID": ""
+        "TIKTOK_PIXEL_ID": "DB9D1FBC77UB6E0ECNOG"
       },
       "services": [{ "binding": "CORE", "service": "webx-core" }]
     }
