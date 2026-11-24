@@ -34,6 +34,11 @@ jobs:
       - name: Deploy test funnels
         env: { CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}", CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}", SQ: "${{ secrets.SQUARE_APPLICATION_ID_TEST }}" }
         run: npx wrangler deploy --env test ${SQ:+--var SQUARE_APPLICATION_ID:$SQ}
+      - name: Push the Turnstile secret (test) from GitHub, once it exists
+        env: { CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}", CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}", S: "${{ secrets.TURNSTILE_SECRET_TEST }}" }
+        run: |
+          if [ -z "$S" ]; then echo "No TURNSTILE_SECRET_TEST yet; the bot check stays off"; exit 0; fi
+          echo "$S" | npx wrangler secret put TURNSTILE_SECRET --env test
       - name: Health (test)
         run: |
           for i in 1 2 3 4 5 6; do
@@ -58,6 +63,11 @@ jobs:
       - name: Deploy live funnels
         env: { CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}", CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}", SQ: "${{ secrets.SQUARE_APPLICATION_ID_LIVE }}" }
         run: npx wrangler deploy --env live --var SQUARE_APPLICATION_ID:$SQ
+      - name: Push the Turnstile secret (live) from GitHub, once it exists
+        env: { CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}", CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}", S: "${{ secrets.TURNSTILE_SECRET_LIVE }}" }
+        run: |
+          if [ -z "$S" ]; then echo "No TURNSTILE_SECRET_LIVE yet; the bot check stays off"; exit 0; fi
+          echo "$S" | npx wrangler secret put TURNSTILE_SECRET --env live
       - name: Health (live)
         run: |
           for i in 1 2 3 4 5 6; do

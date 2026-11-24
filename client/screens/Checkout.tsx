@@ -4,6 +4,7 @@ import { DESIGNS, type DesignId } from "../designs";
 import { Back, Lock } from "../icons";
 import type { Referrer } from "../main";
 import { Screen, Top } from "./Shell";
+import { useTurnstile } from "../turnstile";
 
 export type Buyer = { name: string; email: string; phone: string; key: string; stageName: string; firstChargeOn: string | null };
 
@@ -38,6 +39,7 @@ export function Checkout(p: { cfg: Config | null; referrer: Referrer; stageName:
   const [state, setState] = useState<"loading" | "ready" | "paying" | "unavailable">("loading");
   const [error, setError] = useState("");
   const payments = useRef<Payments | null>(null);
+  const human = useTurnstile(p.cfg?.turnstile);
   // One key per checkout attempt in this tab: a retry after a hiccup can never charge twice.
   const key = useRef<string>(sessionStorage.getItem("webx.funnel.key") ?? (() => { const k = uuid(); sessionStorage.setItem("webx.funnel.key", k); return k; })());
 
@@ -64,6 +66,8 @@ export function Checkout(p: { cfg: Config | null; referrer: Referrer; stageName:
     if (!card || state !== "ready") return;
     setState("paying");
     try {
+      const turnstile = await human.getToken();
+      if (turnstile === null) { setError("We couldn't finish a quick security check. Refresh the page and try again. You were not charged."); setState("ready"); return; }
       const t = await card.tokenize();
       if (t.status !== "OK" || !t.token) { setError(t.errors?.[0]?.message ?? "Check your card details."); setState("ready"); return; }
       let verificationToken: string | undefined;
@@ -72,13 +76,15 @@ export function Checkout(p: { cfg: Config | null; referrer: Referrer; stageName:
           billingContact: { givenName: name.trim().split(" ")[0], familyName: name.trim().split(" ").slice(1).join(" "), email: email.trim(), phone: phone.trim() } });
         verificationToken = v?.token;
       } catch { /* not every card needs it */ }
-      const r = await checkout({ kind: p.referrer.kind, handle: p.referrer.handle, key: key.current, sourceId: t.token, verificationToken,
+      const r = await checkout({ kind: p.referrer.kind, handle: p.referrer.handle, key: key.current, sourceId: t.token, verificationToken, turnstile,
         customer: { name: name.trim(), email: email.trim(), timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
         details: { phone: phone.trim(), stageName: p.stageName.trim(), design: p.design } });
+      human.reset(); // each check works once
       if (!r.data.ok) { setError(r.data.message ?? "Your payment didn't go through. You were not charged."); setState("ready"); return; }
       sessionStorage.removeItem("webx.funnel.key");
       p.onPaid({ name: name.trim(), email: email.trim().toLowerCase(), phone: phone.trim(), key: key.current, stageName: p.stageName.trim(), firstChargeOn: r.data.firstChargeOn ?? null });
     } catch {
+      human.reset();
       setError("We couldn't reach checkout. Check your connection and try again. You were not charged."); setState("ready");
     }
   }
@@ -113,6 +119,7 @@ export function Checkout(p: { cfg: Config | null; referrer: Referrer; stageName:
           </div>
           <label className="agree"><input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} />
             <span>I agree to the <a href="/terms" target="_blank" rel="noreferrer">terms</a> and to {money(price.setupCents)} today, then {money(price.monthlyCents)}/month until I cancel.</span></label>
+          {human.widget}
           {error ? <p className="err box" role="alert">{error}</p> : null}
           <div className="row">
             <button type="button" className="btn ghost" onClick={p.onBack} disabled={state === "paying"}><Back /> Back</button>

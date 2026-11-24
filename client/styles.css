@@ -449,3 +449,4 @@ h3{font-size:18px;font-weight:700}
 /* the "joined" bubble never covers the code */
 .art-qr .chip.pop{top:auto;bottom:10px;right:12px}
 @media (min-width:901px) and (max-height:700px){.welcome .hero{padding-bottom:10px}.pillars{margin-bottom:22px}}
+.turnstile:empty{display:none}.turnstile{margin:4px 0}

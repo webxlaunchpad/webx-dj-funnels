@@ -2,6 +2,7 @@ export type Kind = "direct" | "affiliate" | "rep";
 export type Config = {
   environment: "live" | "test";
   square: { applicationId: string; locationId: string; sdk: string } | null;
+  turnstile?: string | null;
   prices: Record<Kind, { setupCents: number; monthlyCents: number }>;
   funnels: { affiliate: boolean; rep: boolean };
   pixels?: { meta: string | null; tiktok: string | null } | null;
