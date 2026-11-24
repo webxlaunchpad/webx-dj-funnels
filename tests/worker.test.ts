@@ -65,6 +65,8 @@ test("returning visitors get 'not changed' passed through, never 'Page unavailab
   const { e: e2 } = env({ ASSETS: { fetch: async () => new Response(null, { status: 302, headers: { location: "https://elsewhere.example/" } }) } as unknown as Env["ASSETS"] });
   const bad = await worker.fetch(new Request("https://f.test/"), e2);
   assert.equal(bad.status, 502); assert.equal(bad.headers.get("location"), null); assert.match(bad.headers.get("content-type") ?? "", /text\/html/);
+});
+
 test("checkout bot check: off without keys, required with them, before Core is asked", async () => {
   const sessions: [number, unknown] = [201, { checkoutSessionId: "s1", terms: { setup: { amountCents: 9900 } } }];
   const body = (turnstile?: string) => ({ kind: "direct", key: KEY, sourceId: "cnon:x", customer: { email: "a@b.co" }, turnstile });
