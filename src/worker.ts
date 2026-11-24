@@ -173,7 +173,12 @@ export default {
       if (p === "/" || /^\/(a|r)\/[^/]+\/?$/.test(p) || p === "/privacy" || p === "/terms") {
         // Ask for "/" (not "/index.html": Cloudflare redirects that to "/", which would loop).
         const r = await env.ASSETS.fetch(new Request(new URL("/", url), { method: "GET", headers: req.headers }));
-        if (r.status >= 300 && r.status < 400) return withSecurity(new Response("Page unavailable", { status: 502 })); // never pass a redirect on
+        // 304 = "not changed since your last visit": pass it on so the browser shows its saved copy.
+        // (Treating it as a redirect showed returning visitors "Page unavailable", Nov 24 2026.)
+        if (r.status >= 300 && r.status < 400 && r.status !== 304) {
+          return withSecurity(new Response("<!doctype html><meta charset=utf-8><meta name=viewport content=\"width=device-width,initial-scale=1\"><title>WebX DJ</title><p style=\"font-family:system-ui;padding:24px\">This page is having a moment. Please refresh.</p>",
+            { status: 502, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } })); // never pass a real redirect on
+        }
         const out = withSecurity(r); out.headers.set("cache-control", "no-cache"); return out;
       }
       return withSecurity(new Response("Not found", { status: 404 }));

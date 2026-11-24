@@ -55,3 +55,14 @@ test("details only passes through a DJ Hub setup link", async () => {
   const r = await worker.fetch(post("/api/details", { key: KEY, email: "a@b.co", details: { domain: "x.com" } }), e);
   assert.equal((await r.json() as { setupUrl: unknown }).setupUrl, null);
 });
+
+test("returning visitors get 'not changed' passed through, never 'Page unavailable'", async () => {
+  const { e } = env({ ASSETS: { fetch: async (r: Request) => r.headers.get("if-none-match") ? new Response(null, { status: 304, headers: { etag: '"v1"' } }) : new Response("<html>app</html>", { headers: { "content-type": "text/html" } }) } as unknown as Env["ASSETS"] });
+  for (const p of ["/", "/a/kayla"]) {
+    const r = await worker.fetch(new Request(`https://f.test${p}`, { headers: { "if-none-match": '"v1"' } }), e);
+    assert.equal(r.status, 304, p);
+  }
+  const { e: e2 } = env({ ASSETS: { fetch: async () => new Response(null, { status: 302, headers: { location: "https://elsewhere.example/" } }) } as unknown as Env["ASSETS"] });
+  const bad = await worker.fetch(new Request("https://f.test/"), e2);
+  assert.equal(bad.status, 502); assert.equal(bad.headers.get("location"), null); assert.match(bad.headers.get("content-type") ?? "", /text\/html/);
+});
