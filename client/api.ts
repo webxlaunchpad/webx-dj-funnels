@@ -4,6 +4,7 @@ export type Config = {
   square: { applicationId: string; locationId: string; sdk: string } | null;
   prices: Record<Kind, { setupCents: number; monthlyCents: number }>;
   funnels: { affiliate: boolean; rep: boolean };
+  pixels?: { meta: string | null; tiktok: string | null } | null;
 };
 export type DomainCheck = { domain: string; available: boolean | null; unverified: boolean; reason: string | null; alternatives: { domain: string; available: boolean | null }[] };
 

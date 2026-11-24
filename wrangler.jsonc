@@ -29,7 +29,9 @@
         "CORE_URL": "https://webx-core.webxlaunchpad.workers.dev",
         "SQUARE_LOCATION_ID": "L7BNAT9F01DB3",
         "AFFILIATE_FUNNEL": "off",
-        "REP_FUNNEL": "off"
+        "REP_FUNNEL": "off",
+        "META_PIXEL_ID": "3089262921275849",
+        "TIKTOK_PIXEL_ID": ""
       },
       "services": [{ "binding": "CORE", "service": "webx-core" }]
     }

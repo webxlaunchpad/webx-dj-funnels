@@ -10,6 +10,8 @@ export interface Env {
   ASSETS: Fetcher;
   CORE: Fetcher;                       // service binding → webx-core / webx-core-test
   CORE_URL: string;                    // the URL Core expects (routing only; carried by the binding)
+  META_PIXEL_ID?: string;              // public Meta (Facebook/Instagram) pixel id; live only
+  TIKTOK_PIXEL_ID?: string;            // public TikTok pixel id; live only
   ENVIRONMENT: "live" | "test";
   SQUARE_APPLICATION_ID?: string;      // public (it's in every buyer's browser)
   SQUARE_LOCATION_ID: string;          // public
@@ -36,12 +38,12 @@ const SECURITY: Record<string, string> = {
   "strict-transport-security": "max-age=31536000; includeSubDomains",
   "content-security-policy": [
     "default-src 'self'",
-    "script-src 'self' https://web.squarecdn.com https://sandbox.web.squarecdn.com https://js.squareup.com https://js.squareupsandbox.com",
+    "script-src 'self' https://connect.facebook.net https://analytics.tiktok.com https://web.squarecdn.com https://sandbox.web.squarecdn.com https://js.squareup.com https://js.squareupsandbox.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://web.squarecdn.com https://sandbox.web.squarecdn.com",
     "font-src 'self' https://fonts.gstatic.com https://square-fonts-production-f.squarecdn.com https://d1g145x70srn7h.cloudfront.net",
     "img-src 'self' data: https:",
     "media-src 'self'",
-    "connect-src 'self' https://pci-connect.squareup.com https://pci-connect.squareupsandbox.com https://o160250.ingest.sentry.io",
+    "connect-src 'self' https://www.facebook.com https://connect.facebook.net https://analytics.tiktok.com https://analytics-ipv6.tiktokw.us https://pci-connect.squareup.com https://pci-connect.squareupsandbox.com https://o160250.ingest.sentry.io",
     "frame-src https://web.squarecdn.com https://sandbox.web.squarecdn.com https://geoissuer.cardinalcommerce.com https://api.squareup.com https://api.squareupsandbox.com https://connect.squareup.com https://connect.squareupsandbox.com",
     "frame-ancestors 'none'", "base-uri 'none'", "form-action 'self'",
   ].join("; "),
@@ -99,6 +101,8 @@ export default {
             sdk: sandbox ? "https://sandbox.web.squarecdn.com/v1/square.js" : "https://web.squarecdn.com/v1/square.js",
           } : null,
           prices: PRICE, funnels: { affiliate: env.AFFILIATE_FUNNEL === "on", rep: env.REP_FUNNEL === "on" },
+          // Ad pixels: public IDs, set per environment in wrangler.jsonc (live only, so test runs don't count as ads results).
+          pixels: env.META_PIXEL_ID || env.TIKTOK_PIXEL_ID ? { meta: env.META_PIXEL_ID || null, tiktok: env.TIKTOK_PIXEL_ID || null } : null,
         });
       }
 
